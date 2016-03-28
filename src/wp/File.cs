@@ -23,6 +23,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Resources;
 using WPCordovaClassLib.Cordova.JSON;
+using Windows.Storage;
 
 namespace WPCordovaClassLib.Cordova.Commands
 {
@@ -868,7 +869,7 @@ namespace WPCordovaClassLib.Cordova.Commands
         }
 
         //write:[filePath,data,position,isBinary,callbackId]
-        public void write(string options)
+        public async void write(string options)
         {
             string[] optStrings = getOptionStrings(options);
 
