@@ -890,28 +890,37 @@ namespace WPCordovaClassLib.Cordova.Commands
                 byte[] dataToWrite = isBinary ? JSON.JsonHelper.Deserialize<byte[]>(data) :
                                      System.Text.Encoding.UTF8.GetBytes(data);
 
-                using (IsolatedStorageFile isoFile = IsolatedStorageFile.GetUserStoreForApplication())
-                {
-                    // create the file if not exists
-                    if (!isoFile.FileExists(filePath))
-                    {
-                        var file = isoFile.CreateFile(filePath);
-                        file.Close();
-                    }
+                StorageFolder documentsLibraryFolder = Windows.Storage.KnownFolders.DocumentsLibrary;
 
-                    using (FileStream stream = new IsolatedStorageFileStream(filePath, FileMode.Open, FileAccess.ReadWrite, isoFile))
-                    {
-                        if (0 <= position && position <= stream.Length)
-                        {
-                            stream.SetLength(position);
-                        }
-                        using (BinaryWriter writer = new BinaryWriter(stream))
-                        {
-                            writer.Seek(0, SeekOrigin.End);
-                            writer.Write(dataToWrite);
-                        }
-                    }
+                StorageFile myfile = await documentsLibraryFolder.CreateFileAsync(Path.GetFileName(filePath), CreationCollisionOption.GenerateUniqueName);
+
+                using (var s2 = await myfile.OpenStreamForWriteAsync())
+                {
+                    s2.Write(dataToWrite, 0, dataToWrite.Length);
                 }
+
+                //using (IsolatedStorageFile isoFile = IsolatedStorageFile.GetUserStoreForApplication())
+                //{
+                // create the file if not exists
+                //    if (!isoFile.FileExists(filePath))
+                //    {
+                //        var file = isoFile.CreateFile(filePath);
+                //        file.Close();
+                //    }
+
+                //    using (FileStream stream = new IsolatedStorageFileStream(filePath, FileMode.Open, FileAccess.ReadWrite, isoFile))
+                //    {
+                //        if (0 <= position && position <= stream.Length)
+                //        {
+                //            stream.SetLength(position);
+                //        }
+                //        using (BinaryWriter writer = new BinaryWriter(stream))
+                //        {
+                //            writer.Seek(0, SeekOrigin.End);
+                //            writer.Write(dataToWrite);
+                //        }
+                //    }
+                //}
 
                 DispatchCommandResult(new PluginResult(PluginResult.Status.OK, dataToWrite.Length), callbackId);
             }
