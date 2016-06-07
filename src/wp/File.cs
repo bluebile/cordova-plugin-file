@@ -24,6 +24,7 @@ using System.Windows;
 using System.Windows.Resources;
 using WPCordovaClassLib.Cordova.JSON;
 using Windows.Storage;
+using Windows.System;
 
 namespace WPCordovaClassLib.Cordova.Commands
 {
@@ -891,7 +892,7 @@ namespace WPCordovaClassLib.Cordova.Commands
                 byte[] dataToWrite = isBinary ? JSON.JsonHelper.Deserialize<byte[]>(data) :
                                      System.Text.Encoding.UTF8.GetBytes(data);
 
-                StorageFolder documentsLibraryFolder = Windows.Storage.KnownFolders.DocumentsLibrary;
+                StorageFolder documentsLibraryFolder = Windows.ApplicationModel.Package.Current.InstalledLocation;
 
                 StorageFile myfile = await documentsLibraryFolder.CreateFileAsync(Path.GetFileName(filePath), CreationCollisionOption.GenerateUniqueName);
 
@@ -899,6 +900,20 @@ namespace WPCordovaClassLib.Cordova.Commands
                 {
                     s2.Write(dataToWrite, 0, dataToWrite.Length);
                 }
+
+                Deployment.Current.Dispatcher.BeginInvoke(async () =>
+                {
+                    try {
+                        Deployment.Current.Dispatcher.BeginInvoke(async () =>
+                        {
+                            await Launcher.LaunchFileAsync(myfile);
+                        });
+                        DispatchCommandResult(new PluginResult(PluginResult.Status.OK, dataToWrite.Length), callbackId);
+                    } catch (Exception e) {
+                        DispatchCommandResult(new PluginResult(PluginResult.Status.ERROR, NOT_READABLE_ERR), callbackId);
+                    }
+                    await Launcher.LaunchFileAsync(myfile);
+                });
 
                 //using (IsolatedStorageFile isoFile = IsolatedStorageFile.GetUserStoreForApplication())
                 //{
